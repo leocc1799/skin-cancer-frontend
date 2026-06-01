@@ -50,11 +50,11 @@ export default function Home() {
 
     try {
       // Connects to your local or hosted FastAPI backend endpoint
-      const response = await axios.post<PredictionResult>(
-        `${process.env.NEXT_PUBLIC_API_URL}/predict`, 
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
+     const response = await axios.post<PredictionResult>(
+      "https://skin-cancer-api-xxxx.onrender.com/predict", // 👈 Just paste your real Render URL here!
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
       setResult(response.data);
     } catch (err) {
       setError("Unable to connect to the AI backend. Make sure your FastAPI server is active.");
