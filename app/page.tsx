@@ -18,13 +18,13 @@ interface PredictionResult {
 }
 
 const classificationMap: { [key: string]: { name: string; status: string; description: string; color: string } } = {
-  "nv": { name: "Melanocytic Nevus", status: "Benign/Normal", description: "Common mole. Typically harmless, but monitor for changes.", color: "#52c41a" },
-  "mel": { name: "Melanoma", status: "High Risk", description: "Potentially cancerous. Requires immediate professional evaluation.", color: "#ff4d4f" },
-  "bcc": { name: "Basal Cell Carcinoma", status: "Concerning", description: "Common form of skin cancer. Requires medical review.", color: "#faad14" },
-  "akiec": { name: "Actinic Keratosis", status: "Concerning", description: "Pre-cancerous skin patch. Consult a dermatologist.", color: "#faad14" },
-  "bkl": { name: "Benign Keratosis", status: "Benign/Normal", description: "Non-cancerous skin growth. Usually harmless.", color: "#52c41a" },
-  "df": { name: "Dermatofibroma", status: "Benign/Normal", description: "Small, firm bump. Typically harmless.", color: "#52c41a" },
-  "vasc": { name: "Vascular Lesion", status: "Monitor", description: "Related to blood vessels. Professional review recommended.", color: "#1677ff" },
+  "melanocytic nevi": { name: "Melanocytic Nevus", status: "Benign/Normal", description: "A common mole. Usually harmless, but keep an eye on it for shape changes.", color: "#52c41a" },
+  "melanoma": { name: "Melanoma", status: "High Risk", description: "A serious form of skin cancer. Requires immediate evaluation by a doctor.", color: "#ff4d4f" },
+  "basal cell carcinoma": { name: "Basal Cell Carcinoma", status: "Concerning", description: "Common skin cancer. Requires medical review and treatment.", color: "#faad14" },
+  "actinic keratosis": { name: "Actinic Keratosis", status: "Concerning", description: "Pre-cancerous skin patch. Consult a dermatologist.", color: "#faad14" },
+  "benign keratosis": { name: "Benign Keratosis", status: "Benign/Normal", description: "Non-cancerous skin growth. Usually harmless.", color: "#52c41a" },
+  "dermatofibroma": { name: "Dermatofibroma", status: "Benign/Normal", description: "Small, firm bump. Typically harmless.", color: "#52c41a" },
+  "vascular lesion": { name: "Vascular Lesion", status: "Monitor", description: "Related to blood vessels. Professional review recommended.", color: "#1677ff" },
 };
 
 export default function Home() {
@@ -111,42 +111,41 @@ export default function Home() {
                 </div>
               )}
 
-            {result && (
-            <div>
-              {(() => {
-                // FORCE lowercase to avoid case-sensitivity bugs!
-                const normalizedKey = result.class_name.toLowerCase();
-                
-                // Look it up, and provide a "default" fallback if it's a class we haven't mapped yet
-                const info = classificationMap[normalizedKey] || { 
-                    name: result.class_name, 
-                    status: "Check Required", 
-                    description: "This classification requires professional review.", 
-                    color: "#faad14" 
-                };
-          
-                return (
-                  <Row gutter={[24, 24]}>
-                    <Col xs={24} md={12}>
-                      <div style={{ background: "#f9f9f9", padding: "20px", borderRadius: "16px", borderLeft: `6px solid ${info.color}` }}>
-                        <Text type="secondary" style={{ fontSize: "12px", textTransform: "uppercase" }}>{info.status}</Text>
-                        <Title level={2} style={{ margin: "4px 0" }}>{info.name}</Title>
-                        <Paragraph type="secondary" style={{ fontSize: "14px", marginTop: "10px" }}>
-                          {info.description}
-                        </Paragraph>
-                        <Progress percent={Number((result.confidence * 100).toFixed(1))} strokeColor={info.color} />
-                      </div>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <img src={`data:image/png;base64,${result.heatmap_base64}`} style={{ width: "100%", borderRadius: "16px" }} alt="Heatmap" />
-                    </Col>
-                  </Row>
-                );
-              })()}
-              
-              <Button block size="large" style={{ marginTop: "24px" }} onClick={() => {setPreviewUrl(null); setResult(null);}}>Scan New Image</Button>
+           {result && (
+  <div>
+    {(() => {
+      // 1. CLEAN THE INPUT: 
+      // Replace underscores with spaces, then lowercase, then trim whitespace
+      const cleanKey = result.class_name.replace(/_/g, " ").toLowerCase().trim();
+      
+      // 2. LOOKUP:
+      const info = classificationMap[cleanKey] || { 
+          name: result.class_name, // fallback to raw name if map doesn't have it
+          status: "Check Required", 
+          description: "This classification requires professional review.", 
+          color: "#faad14" 
+      };
+
+      return (
+        <Row gutter={[24, 24]}>
+          <Col xs={24} md={12}>
+            <div style={{ background: "#f9f9f9", padding: "20px", borderRadius: "16px", borderLeft: `6px solid ${info.color}` }}>
+              <Text type="secondary" style={{ fontSize: "12px", textTransform: "uppercase" }}>{info.status}</Text>
+              <Title level={2} style={{ margin: "4px 0" }}>{info.name}</Title>
+              <Paragraph type="secondary" style={{ fontSize: "14px", marginTop: "10px" }}>
+                {info.description}
+              </Paragraph>
+              <Progress percent={Number((result.confidence * 100).toFixed(1))} strokeColor={info.color} />
             </div>
-          )}
+          </Col>
+          <Col xs={24} md={12}>
+            <img src={`data:image/png;base64,${result.heatmap_base64}`} style={{ width: "100%", borderRadius: "16px" }} alt="Heatmap" />
+          </Col>
+        </Row>
+      );
+    })()}
+  </div>
+)}
             </Card>
 
             {/* Disclaimer Section */}
