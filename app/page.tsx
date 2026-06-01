@@ -22,7 +22,7 @@ const classificationMap: { [key: string]: { name: string; status: string; descri
   "basal_cell_carcinoma": { name: "Basal Cell Carcinoma", status: "Concerning", description: "Common form of skin cancer. Requires medical review.", color: "#faad14" },
   "actinic_keratoses": { name: "Actinic Keratosis", status: "Concerning", description: "Pre-cancerous skin patch. Consult a dermatologist.", color: "#faad14" },
   "vascular_lesions": { name: "Vascular Lesion", status: "Monitor", description: "Related to blood vessels. Professional review recommended.", color: "#1677ff" },
-  "melanocytic_nevi": { name: "Melanocytic Nevus", status: "Benign/Normal", description: "Common mole. Typically harmless, but monitor for changes.", color: "#52c41a" },
+  "melanocytic_Nevi": { name: "Melanocytic Nevus", status: "Benign/Normal", description: "Common mole. Typically harmless, but monitor for changes.", color: "#52c41a" },
   "melanoma": { name: "Melanoma", status: "High Risk", description: "Potentially cancerous. Requires immediate professional evaluation.", color: "#ff4d4f" },
   "dermatofibroma": { name: "Dermatofibroma", status: "Benign/Normal", description: "Small, firm bump. Typically harmless.", color: "#52c41a" },
 };
@@ -113,13 +113,12 @@ export default function Home() {
 {result && (
   <div>
     {(() => {
-      // FORCE lowercase so it matches our classificationMap keys exactly
-      const normalizedKey = result.class_name;
-      
-      const info = classificationMap[normalizedKey] || { 
+      // Direct lookup with NO transformations
+      // If the key isn't found, it defaults to an "Unknown" state
+      const info = classificationMap[result.class_name] || { 
           name: result.class_name, 
-          status: "Information Unavailable", 
-          description: "Consult a medical professional for analysis.", 
+          status: "Status Unknown", 
+          description: "This classification is not in our current map.", 
           color: "#999" 
       };
 
@@ -136,13 +135,19 @@ export default function Home() {
             </div>
           </Col>
           <Col xs={24} md={12}>
-            <img src={`data:image/png;base64,${result.heatmap_base64}`} style={{ width: "100%", borderRadius: "16px" }} alt="Heatmap" />
+            <img 
+              src={`data:image/png;base64,${result.heatmap_base64}`} 
+              style={{ width: "100%", borderRadius: "16px" }} 
+              alt="Heatmap" 
+            />
           </Col>
         </Row>
       );
     })()}
     
-    <Button block size="large" style={{ marginTop: "24px" }} onClick={() => {setPreviewUrl(null); setResult(null);}}>Scan New Image</Button>
+    <Button block size="large" style={{ marginTop: "24px" }} onClick={() => {setPreviewUrl(null); setResult(null);}}>
+      Scan New Image
+    </Button>
   </div>
 )}
   
