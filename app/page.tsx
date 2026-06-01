@@ -18,13 +18,13 @@ interface PredictionResult {
 }
 
 const classificationMap: { [key: string]: { name: string; status: string; description: string; color: string } } = {
-  "melanocytic nevi": { name: "Melanocytic Nevus", status: "Benign/Normal", description: "A common mole. Usually harmless, but keep an eye on it for shape changes.", color: "#52c41a" },
-  "melanoma": { name: "Melanoma", status: "High Risk", description: "A serious form of skin cancer. Requires immediate evaluation by a doctor.", color: "#ff4d4f" },
-  "basal cell carcinoma": { name: "Basal Cell Carcinoma", status: "Concerning", description: "Common skin cancer. Requires medical review and treatment.", color: "#faad14" },
-  "actinic keratosis": { name: "Actinic Keratosis", status: "Concerning", description: "Pre-cancerous skin patch. Consult a dermatologist.", color: "#faad14" },
-  "benign keratosis": { name: "Benign Keratosis", status: "Benign/Normal", description: "Non-cancerous skin growth. Usually harmless.", color: "#52c41a" },
+  "benign_keratosis-like_lesions": { name: "Benign Keratosis-like Lesion", status: "Benign/Normal", description: "Typically non-cancerous skin growth.", color: "#52c41a" },
+  "basal_cell_carcinoma": { name: "Basal Cell Carcinoma", status: "Concerning", description: "Common form of skin cancer. Requires medical review.", color: "#faad14" },
+  "actinic_keratoses": { name: "Actinic Keratosis", status: "Concerning", description: "Pre-cancerous skin patch. Consult a dermatologist.", color: "#faad14" },
+  "vascular_lesions": { name: "Vascular Lesion", status: "Monitor", description: "Related to blood vessels. Professional review recommended.", color: "#1677ff" },
+  "melanocytic_nevi": { name: "Melanocytic Nevus", status: "Benign/Normal", description: "Common mole. Typically harmless, but monitor for changes.", color: "#52c41a" },
+  "melanoma": { name: "Melanoma", status: "High Risk", description: "Potentially cancerous. Requires immediate professional evaluation.", color: "#ff4d4f" },
   "dermatofibroma": { name: "Dermatofibroma", status: "Benign/Normal", description: "Small, firm bump. Typically harmless.", color: "#52c41a" },
-  "vascular lesion": { name: "Vascular Lesion", status: "Monitor", description: "Related to blood vessels. Professional review recommended.", color: "#1677ff" },
 };
 
 export default function Home() {
@@ -110,20 +110,17 @@ export default function Home() {
                   </div>
                 </div>
               )}
-
-           {result && (
+{result && (
   <div>
     {(() => {
-      // 1. CLEAN THE INPUT: 
-      // Replace underscores with spaces, then lowercase, then trim whitespace
-      const cleanKey = result.class_name.replace(/_/g, " ").toLowerCase().trim();
+      // FORCE lowercase so it matches our classificationMap keys exactly
+      const normalizedKey = result.class_name.toLowerCase();
       
-      // 2. LOOKUP:
-      const info = classificationMap[cleanKey] || { 
-          name: result.class_name, // fallback to raw name if map doesn't have it
-          status: "Check Required", 
-          description: "This classification requires professional review.", 
-          color: "#faad14" 
+      const info = classificationMap[normalizedKey] || { 
+          name: result.class_name, 
+          status: "Information Unavailable", 
+          description: "Consult a medical professional for analysis.", 
+          color: "#999" 
       };
 
       return (
@@ -144,8 +141,11 @@ export default function Home() {
         </Row>
       );
     })()}
+    
+    <Button block size="large" style={{ marginTop: "24px" }} onClick={() => {setPreviewUrl(null); setResult(null);}}>Scan New Image</Button>
   </div>
 )}
+  
             </Card>
 
             {/* Disclaimer Section */}
