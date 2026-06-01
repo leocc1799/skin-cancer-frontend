@@ -111,40 +111,42 @@ export default function Home() {
                 </div>
               )}
 
-              {result && (
-                <div>
-                  {/* Get the mapping data based on the result.class_name */}
-                  {(() => {
-                    // Fallback if the key isn't found
-                    const info = classificationMap[result.class_name] || { 
-                        name: result.class_name, 
-                        status: "Unknown", 
-                        description: "No specific info available.", 
-                        color: "#999" 
-                    };
+            {result && (
+            <div>
+              {(() => {
+                // FORCE lowercase to avoid case-sensitivity bugs!
+                const normalizedKey = result.class_name.toLowerCase();
+                
+                // Look it up, and provide a "default" fallback if it's a class we haven't mapped yet
+                const info = classificationMap[normalizedKey] || { 
+                    name: result.class_name, 
+                    status: "Check Required", 
+                    description: "This classification requires professional review.", 
+                    color: "#faad14" 
+                };
+          
+                return (
+                  <Row gutter={[24, 24]}>
+                    <Col xs={24} md={12}>
+                      <div style={{ background: "#f9f9f9", padding: "20px", borderRadius: "16px", borderLeft: `6px solid ${info.color}` }}>
+                        <Text type="secondary" style={{ fontSize: "12px", textTransform: "uppercase" }}>{info.status}</Text>
+                        <Title level={2} style={{ margin: "4px 0" }}>{info.name}</Title>
+                        <Paragraph type="secondary" style={{ fontSize: "14px", marginTop: "10px" }}>
+                          {info.description}
+                        </Paragraph>
+                        <Progress percent={Number((result.confidence * 100).toFixed(1))} strokeColor={info.color} />
+                      </div>
+                    </Col>
+                    <Col xs={24} md={12}>
+                      <img src={`data:image/png;base64,${result.heatmap_base64}`} style={{ width: "100%", borderRadius: "16px" }} alt="Heatmap" />
+                    </Col>
+                  </Row>
+                );
+              })()}
               
-                    return (
-                      <Row gutter={[24, 24]}>
-                        <Col xs={24} md={12}>
-                          <div style={{ background: "#f9f9f9", padding: "20px", borderRadius: "16px", borderLeft: `6px solid ${info.color}` }}>
-                            <Text type="secondary" style={{ fontSize: "12px", textTransform: "uppercase" }}>{info.status}</Text>
-                            <Title level={2} style={{ margin: "4px 0" }}>{info.name}</Title>
-                            <Paragraph type="secondary" style={{ fontSize: "14px", marginTop: "10px" }}>
-                              {info.description}
-                            </Paragraph>
-                            <Progress percent={Number((result.confidence * 100).toFixed(1))} strokeColor={info.color} />
-                          </div>
-                        </Col>
-                        <Col xs={24} md={12}>
-                          <img src={`data:image/png;base64,${result.heatmap_base64}`} style={{ width: "100%", borderRadius: "16px" }} alt="Heatmap" />
-                        </Col>
-                      </Row>
-                    );
-                  })()}
-                  
-                  <Button block size="large" style={{ marginTop: "24px" }} onClick={() => {setPreviewUrl(null); setResult(null);}}>Scan New Image</Button>
-                </div>
-              )}
+              <Button block size="large" style={{ marginTop: "24px" }} onClick={() => {setPreviewUrl(null); setResult(null);}}>Scan New Image</Button>
+            </div>
+          )}
             </Card>
 
             {/* Disclaimer Section */}
