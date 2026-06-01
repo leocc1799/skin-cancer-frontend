@@ -51,7 +51,7 @@ export default function Home() {
     try {
       // Connects to your local or hosted FastAPI backend endpoint
      const response = await axios.post<PredictionResult>(
-      "https://skin-cancer-api-xxxx.onrender.com/predict", // 👈 Just paste your real Render URL here!
+      "https://skin-cancer-api-da8x.onrender.com/predict", // 👈 Just paste your real Render URL here!
       formData,
       { headers: { "Content-Type": "multipart/form-data" } }
     );
