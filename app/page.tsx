@@ -1,20 +1,31 @@
 "use client";
 
 import React, { useState } from "react";
-import { Upload, Button, Card, Typography, Alert, Progress, Space, Row, Col, Layout, ConfigProvider } from "antd";
-import { InboxOutlined, CheckCircleFilled, ExperimentOutlined } from "@ant-design/icons";
+import { Upload, Button, Card, Typography, Alert, Progress, Space, Row, Col, Layout, ConfigProvider, Collapse } from "antd";
+import { InboxOutlined, CheckCircleFilled, ExperimentOutlined, InfoCircleOutlined, WarningOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
 import axios from "axios";
 
-const { Title, Text } = Typography;
+const { Title, Text, Paragraph } = Typography;
 const { Dragger } = Upload;
 const { Content } = Layout;
+const { Panel } = Collapse;
 
 interface PredictionResult {
   class_name: string;
   confidence: number;
   heatmap_base64: string;
 }
+
+const classificationMap: { [key: string]: { name: string; status: string; description: string; color: string } } = {
+  "nv": { name: "Melanocytic Nevus", status: "Benign/Normal", description: "Common mole. Typically harmless, but monitor for changes.", color: "#52c41a" },
+  "mel": { name: "Melanoma", status: "High Risk", description: "Potentially cancerous. Requires immediate professional evaluation.", color: "#ff4d4f" },
+  "bcc": { name: "Basal Cell Carcinoma", status: "Concerning", description: "Common form of skin cancer. Requires medical review.", color: "#faad14" },
+  "akiec": { name: "Actinic Keratosis", status: "Concerning", description: "Pre-cancerous skin patch. Consult a dermatologist.", color: "#faad14" },
+  "bkl": { name: "Benign Keratosis", status: "Benign/Normal", description: "Non-cancerous skin growth. Usually harmless.", color: "#52c41a" },
+  "df": { name: "Dermatofibroma", status: "Benign/Normal", description: "Small, firm bump. Typically harmless.", color: "#52c41a" },
+  "vasc": { name: "Vascular Lesion", status: "Monitor", description: "Related to blood vessels. Professional review recommended.", color: "#1677ff" },
+};
 
 export default function Home() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -66,19 +77,23 @@ export default function Home() {
             <div style={{ textAlign: "center", marginBottom: "32px" }}>
               <Title level={2} style={{ marginBottom: 8 }}>Skin Cancer Detect</Title>
               <Text type="secondary" style={{ fontSize: "16px" }}>
-                Upload a dermoscopic image for AI-powered structural analysis.
+                AI-powered dermatological triage assistant.
               </Text>
             </div>
 
+            {/* How It Works Section */}
+            <Collapse ghost style={{ marginBottom: "24px", background: "#fff", padding: "10px", borderRadius: "12px" }}>
+              <Panel header={<Text strong><InfoCircleOutlined /> How does this work?</Text>} key="1">
+                <Paragraph type="secondary">
+                  1. <strong>Input:</strong> You upload an image of a skin lesion.
+                  <br />2. <strong>Analysis:</strong> Our backend uses a <em>Vision Transformer (ViT)</em> model to identify patterns typical of various skin conditions.
+                  <br />3. <strong>Localization:</strong> The model generates a <em>Grad-CAM heatmap</em>, which highlights the specific areas of the image that triggered the AI's classification.
+                </Paragraph>
+              </Panel>
+            </Collapse>
+
             {/* Main Card */}
-            <Card 
-              variant="borderless" 
-              style={{ 
-                boxShadow: "0 10px 25px -5px rgba(0,0,0,0.05)", 
-                borderRadius: "20px",
-                padding: "20px" 
-              }}
-            >
+            <Card variant="borderless" style={{ boxShadow: "0 10px 25px -5px rgba(0,0,0,0.05)", borderRadius: "20px", padding: "20px" }}>
               {!previewUrl && (
                 <Dragger {...uploadProps} style={{ padding: "40px", background: "#fafafa" }}>
                   <p className="ant-upload-drag-icon"><InboxOutlined style={{ color: '#00b96b' }} /></p>
@@ -98,22 +113,49 @@ export default function Home() {
 
               {result && (
                 <div>
-                   <Row gutter={[24, 24]}>
-                      <Col xs={24} md={12}>
-                        <div style={{ background: "#f9f9f9", padding: "20px", borderRadius: "16px" }}>
-                          <Text type="secondary" style={{ fontSize: "12px", textTransform: "uppercase" }}>Confidence</Text>
-                          <Title level={2} style={{ margin: "4px 0" }}>{result.class_name}</Title>
-                          <Progress percent={Number((result.confidence * 100).toFixed(1))} />
-                        </div>
-                      </Col>
-                      <Col xs={24} md={12}>
-                        <img src={`data:image/png;base64,${result.heatmap_base64}`} style={{ width: "100%", borderRadius: "16px" }} alt="Heatmap" />
-                      </Col>
-                   </Row>
-                   <Button block size="large" style={{ marginTop: "24px" }} onClick={() => {setPreviewUrl(null); setResult(null);}}>Scan New Image</Button>
+                  {/* Get the mapping data based on the result.class_name */}
+                  {(() => {
+                    // Fallback if the key isn't found
+                    const info = classificationMap[result.class_name] || { 
+                        name: result.class_name, 
+                        status: "Unknown", 
+                        description: "No specific info available.", 
+                        color: "#999" 
+                    };
+              
+                    return (
+                      <Row gutter={[24, 24]}>
+                        <Col xs={24} md={12}>
+                          <div style={{ background: "#f9f9f9", padding: "20px", borderRadius: "16px", borderLeft: `6px solid ${info.color}` }}>
+                            <Text type="secondary" style={{ fontSize: "12px", textTransform: "uppercase" }}>{info.status}</Text>
+                            <Title level={2} style={{ margin: "4px 0" }}>{info.name}</Title>
+                            <Paragraph type="secondary" style={{ fontSize: "14px", marginTop: "10px" }}>
+                              {info.description}
+                            </Paragraph>
+                            <Progress percent={Number((result.confidence * 100).toFixed(1))} strokeColor={info.color} />
+                          </div>
+                        </Col>
+                        <Col xs={24} md={12}>
+                          <img src={`data:image/png;base64,${result.heatmap_base64}`} style={{ width: "100%", borderRadius: "16px" }} alt="Heatmap" />
+                        </Col>
+                      </Row>
+                    );
+                  })()}
+                  
+                  <Button block size="large" style={{ marginTop: "24px" }} onClick={() => {setPreviewUrl(null); setResult(null);}}>Scan New Image</Button>
                 </div>
               )}
             </Card>
+
+            {/* Disclaimer Section */}
+            <Alert
+              style={{ marginTop: "32px", borderRadius: "12px" }}
+              message="Important Medical Disclaimer"
+              description="This tool is for educational purposes only and is not a medical device. It does not provide medical diagnoses or treatment. Always consult a board-certified dermatologist for any skin concerns. Do not delay seeking professional medical advice based on the output of this AI model."
+              type="warning"
+              showIcon
+              icon={<WarningOutlined />}
+            />
 
             {/* Footer */}
             <div style={{ textAlign: "center", marginTop: "40px", opacity: 0.6 }}>
