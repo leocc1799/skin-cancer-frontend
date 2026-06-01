@@ -114,7 +114,7 @@ export default function Home() {
   <div>
     {(() => {
       // FORCE lowercase so it matches our classificationMap keys exactly
-      const normalizedKey = result.class_name();
+      const normalizedKey = result.class_name;
       
       const info = classificationMap[normalizedKey] || { 
           name: result.class_name, 
