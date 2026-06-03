@@ -459,21 +459,6 @@ export default function Home() {
           </AccordionPanel>
         </div>
 
-        {/* Footer disclaimer */}
-        <div className="disclaimer-block" style={{ marginTop: 24 }}>Research Preview
-          <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-            <svg style={{ flexShrink: 0, marginTop: 2 }} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
-            <div>
-              <p style={{ fontSize: "13px", fontWeight: 700, color: "#92400e", marginBottom: 5 }}>Important Information</p>
-              <p style={{ fontSize: "12.5px", color: "#78350f", lineHeight: 1.75 }}>
-                <strong>Not a medical device.</strong> This tool has not been validated for clinical use, is not FDA-cleared or TGA-registered, and does not comply with any medical device regulatory standard. Results are for research and educational purposes only. <strong>Do not use this tool to make any health or treatment decisions.</strong> If you are concerned about a skin lesion, consult a qualified dermatologist without delay. Image data is transmitted to a third-party server for processing — do not upload images containing identifying information.
-              </p>
-            </div>
-          </div>
-        </div>
-
         {/* Footer */}
         <div style={{ marginTop: 40, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
           <span style={{ fontSize: "12px", color: "#9ca3af" }}>Developed by <strong style={{ color: "#6b7280" }}>LP</strong></span>
