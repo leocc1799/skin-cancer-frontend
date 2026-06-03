@@ -280,10 +280,10 @@ export default function Home() {
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" /><path d="M12 8v4l3 3" />
             </svg>
-            <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: "15px", letterSpacing: "0.01em" }}>DermaScan AI</span>
+            <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: "15px", letterSpacing: "0.01em" }}>Derma Scope Guard</span>
           </div>
           <span style={{ fontSize: "11px", color: "#a5b4fc", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-            Research Preview · Not for Clinical Use
+            Scan Your Mole
           </span>
         </div>
       </div>
@@ -301,7 +301,7 @@ export default function Home() {
             Skin Lesion<br /><em style={{ color: "#a5b4fc" }}>Analysis Tool</em>
           </h1>
           <p style={{ fontSize: "15px", color: "#c7d2fe", lineHeight: 1.7, maxWidth: 480, marginBottom: 24 }}>
-            Upload a dermoscopic or clinical image and receive an AI-generated classification powered by a Vision Transformer model trained on the HAM10000 dataset.
+            Upload a dermoscopic or clinical image and receive a classification powered by a Vision Transformer model trained on the HAM10000 dataset.
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
             {["Vision Transformer (ViT)", "Grad-CAM Heatmap", "7 Lesion Classes", "HAM10000 Dataset"].map((t) => (
@@ -460,7 +460,7 @@ export default function Home() {
         </div>
 
         {/* Footer disclaimer */}
-        <div className="disclaimer-block" style={{ marginTop: 24 }}>
+        <div className="disclaimer-block" style={{ marginTop: 24 }}>Research Preview
           <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
             <svg style={{ flexShrink: 0, marginTop: 2 }} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
@@ -476,9 +476,9 @@ export default function Home() {
 
         {/* Footer */}
         <div style={{ marginTop: 40, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
-          <span style={{ fontSize: "12px", color: "#9ca3af" }}>Developed by <strong style={{ color: "#6b7280" }}>Leo P.</strong></span>
+          <span style={{ fontSize: "12px", color: "#9ca3af" }}>Developed by <strong style={{ color: "#6b7280" }}>LP</strong></span>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {["Research Use Only", "Not Validated Clinically", "No Data Stored"].map((t) => (
+            {["No Data Stored"].map((t) => (
               <span key={t} className="tag-chip" style={{ fontSize: "10px" }}>{t}</span>
             ))}
           </div>
