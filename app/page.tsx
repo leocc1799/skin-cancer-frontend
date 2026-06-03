@@ -294,7 +294,7 @@ export default function Home() {
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(165,180,252,0.15)", border: "1px solid rgba(165,180,252,0.3)", borderRadius: "999px", padding: "5px 12px", marginBottom: "20px" }}>
             <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#a5b4fc" }} />
             <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#c7d2fe" }}>
-              AI-Assisted Dermatology Triage
+              Powered by Machine Learning
             </span>
           </div>
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(28px, 5vw, 44px)", fontWeight: 400, lineHeight: 1.15, marginBottom: 14, color: "#fff" }}>
