@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Skin Health AI Triage",
+  title: "Derma Scope Guard",
   description: "An AI-powered diagnostic triage tool.",
 };
 
