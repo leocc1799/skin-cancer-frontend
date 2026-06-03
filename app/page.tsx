@@ -1,115 +1,127 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, ReactNode } from "react";
 import axios from "axios";
 
-const classificationMap = {
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface PredictionResult {
+  class_name: string;
+  confidence: number;
+  heatmap_base64: string;
+}
+
+interface ClassInfo {
+  name: string;
+  status: string;
+  description: string;
+  color: string;
+  bg: string;
+  border: string;
+  badge: string;
+  badgeText: string;
+  risk: number;
+}
+
+// ─── Data ─────────────────────────────────────────────────────────────────────
+
+const classificationMap: Record<string, ClassInfo> = {
   "benign_keratosis-like_lesions": {
     name: "Benign Keratosis-like Lesion",
     status: "Benign",
     description: "A typically non-cancerous skin growth. Seborrheic or solar keratoses often fall into this category and are considered low-risk, though professional monitoring is always advisable.",
-    color: "#16a34a",
-    bg: "#f0fdf4",
-    border: "#bbf7d0",
-    badge: "#dcfce7",
-    badgeText: "#15803d",
-    risk: 1,
+    color: "#16a34a", bg: "#f0fdf4", border: "#bbf7d0", badge: "#dcfce7", badgeText: "#15803d", risk: 1,
   },
   "basal_cell_carcinoma": {
     name: "Basal Cell Carcinoma",
     status: "Concerning",
     description: "The most common form of skin cancer, originating in basal cells. While rarely life-threatening, it requires prompt medical review and dermatological intervention.",
-    color: "#d97706",
-    bg: "#fffbeb",
-    border: "#fde68a",
-    badge: "#fef3c7",
-    badgeText: "#92400e",
-    risk: 3,
+    color: "#d97706", bg: "#fffbeb", border: "#fde68a", badge: "#fef3c7", badgeText: "#92400e", risk: 3,
   },
   "actinic_keratoses": {
     name: "Actinic Keratosis",
     status: "Pre-cancerous",
     description: "A rough, scaly patch caused by years of UV exposure. Classified as pre-cancerous — prompt consultation with a dermatologist is strongly recommended.",
-    color: "#ea580c",
-    bg: "#fff7ed",
-    border: "#fed7aa",
-    badge: "#ffedd5",
-    badgeText: "#9a3412",
-    risk: 3,
+    color: "#ea580c", bg: "#fff7ed", border: "#fed7aa", badge: "#ffedd5", badgeText: "#9a3412", risk: 3,
   },
   "vascular_lesions": {
     name: "Vascular Lesion",
     status: "Monitor",
     description: "An abnormality involving blood vessels in or beneath the skin. Most are benign, but professional evaluation is recommended to rule out underlying conditions.",
-    color: "#2563eb",
-    bg: "#eff6ff",
-    border: "#bfdbfe",
-    badge: "#dbeafe",
-    badgeText: "#1e40af",
-    risk: 2,
+    color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe", badge: "#dbeafe", badgeText: "#1e40af", risk: 2,
   },
   "melanocytic_Nevi": {
     name: "Melanocytic Nevus",
     status: "Benign",
     description: "A common mole formed by clustered melanocytes. Typically harmless, but any changes in size, shape, or colour should be promptly reviewed by a medical professional.",
-    color: "#16a34a",
-    bg: "#f0fdf4",
-    border: "#bbf7d0",
-    badge: "#dcfce7",
-    badgeText: "#15803d",
-    risk: 1,
+    color: "#16a34a", bg: "#f0fdf4", border: "#bbf7d0", badge: "#dcfce7", badgeText: "#15803d", risk: 1,
   },
   "melanoma": {
     name: "Melanoma",
     status: "High Risk",
     description: "A serious form of skin cancer arising from melanocytes. Early detection is critical. This classification requires immediate consultation with a board-certified dermatologist or oncologist.",
-    color: "#dc2626",
-    bg: "#fef2f2",
-    border: "#fecaca",
-    badge: "#fee2e2",
-    badgeText: "#991b1b",
-    risk: 5,
+    color: "#dc2626", bg: "#fef2f2", border: "#fecaca", badge: "#fee2e2", badgeText: "#991b1b", risk: 5,
   },
   "dermatofibroma": {
     name: "Dermatofibroma",
     status: "Benign",
     description: "A small, firm, benign fibrous nodule most commonly found on the legs. Typically harmless and requires no treatment, though any growth changes warrant review.",
-    color: "#16a34a",
-    bg: "#f0fdf4",
-    border: "#bbf7d0",
-    badge: "#dcfce7",
-    badgeText: "#15803d",
-    risk: 1,
+    color: "#16a34a", bg: "#f0fdf4", border: "#bbf7d0", badge: "#dcfce7", badgeText: "#15803d", risk: 1,
   },
 };
 
-const riskLabels = ["", "Low", "Low-Moderate", "Moderate", "Moderate-High", "High"];
+const riskLabels: string[] = ["", "Low", "Low-Moderate", "Moderate", "Moderate-High", "High"];
 
-function RiskMeter({ risk }) {
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+interface RiskMeterProps {
+  risk: number;
+}
+
+function RiskMeter({ risk }: RiskMeterProps) {
+  const riskColor =
+    risk >= 4 ? "#dc2626" :
+    risk >= 3 ? "#ea580c" :
+    risk >= 2 ? "#2563eb" : "#16a34a";
+
+  const barColor =
+    risk >= 5 ? "#dc2626" :
+    risk >= 4 ? "#f97316" :
+    risk >= 3 ? "#f59e0b" :
+    risk >= 2 ? "#3b82f6" : "#22c55e";
+
   return (
     <div style={{ marginTop: "16px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-        <span style={{ fontSize: "11px", letterSpacing: "0.08em", textTransform: "uppercase", color: "#6b7280", fontWeight: 600 }}>Risk Level</span>
-        <span style={{ fontSize: "11px", letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 700, color: risk >= 4 ? "#dc2626" : risk >= 3 ? "#ea580c" : risk >= 2 ? "#2563eb" : "#16a34a" }}>
+        <span style={{ fontSize: "11px", letterSpacing: "0.08em", textTransform: "uppercase", color: "#6b7280", fontWeight: 600 }}>
+          Risk Level
+        </span>
+        <span style={{ fontSize: "11px", letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 700, color: riskColor }}>
           {riskLabels[risk]}
         </span>
       </div>
       <div style={{ display: "flex", gap: "4px" }}>
-        {[1,2,3,4,5].map(i => (
-          <div key={i} style={{
-            flex: 1, height: "6px", borderRadius: "99px",
-            background: i <= risk
-              ? (risk >= 5 ? "#dc2626" : risk >= 4 ? "#f97316" : risk >= 3 ? "#f59e0b" : risk >= 2 ? "#3b82f6" : "#22c55e")
-              : "#e5e7eb",
-            transition: "background 0.3s"
-          }} />
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div
+            key={i}
+            style={{
+              flex: 1, height: "6px", borderRadius: "99px",
+              background: i <= risk ? barColor : "#e5e7eb",
+              transition: "background 0.3s",
+            }}
+          />
         ))}
       </div>
     </div>
   );
 }
 
-function ConfidenceRing({ confidence, color }) {
+interface ConfidenceRingProps {
+  confidence: number;
+  color: string;
+}
+
+function ConfidenceRing({ confidence, color }: ConfidenceRingProps) {
   const r = 38;
   const circ = 2 * Math.PI * r;
   const dash = (confidence / 100) * circ;
@@ -124,21 +136,50 @@ function ConfidenceRing({ confidence, color }) {
         strokeLinecap="round"
         style={{ transition: "stroke-dasharray 1s cubic-bezier(0.4,0,0.2,1)" }}
       />
-      <text x="48" y="44" textAnchor="middle" fontSize="15" fontWeight="700" fill={color}>{confidence}%</text>
-      <text x="48" y="58" textAnchor="middle" fontSize="9" fill="#9ca3af" fontWeight="600" letterSpacing="0.05em">CONFIDENCE</text>
+      <text x="48" y="44" textAnchor="middle" fontSize="15" fontWeight="700" fill={color}>
+        {confidence}%
+      </text>
+      <text x="48" y="58" textAnchor="middle" fontSize="9" fill="#9ca3af" fontWeight="600" letterSpacing="0.05em">
+        CONFIDENCE
+      </text>
     </svg>
   );
 }
 
+interface AccordionPanelProps {
+  title: string;
+  children: ReactNode;
+}
+
+function AccordionPanel({ title, children }: AccordionPanelProps) {
+  const [open, setOpen] = useState<boolean>(false);
+  return (
+    <div>
+      <button className="accordion-btn" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+        <span>{title}</span>
+        <svg
+          style={{ transform: open ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s", flexShrink: 0 }}
+          width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round"
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      {open && children}
+    </div>
+  );
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
+
 export default function Home() {
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState(null);
-  const [dragging, setDragging] = useState(false);
-  const [revealed, setRevealed] = useState(false);
-  const fileRef = useRef(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [result, setResult] = useState<PredictionResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [dragging, setDragging] = useState<boolean>(false);
+  const [revealed, setRevealed] = useState<boolean>(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (result) {
@@ -148,7 +189,7 @@ export default function Home() {
     }
   }, [result]);
 
-  const handleFile = (file) => {
+  const handleFile = (file: File | null | undefined): void => {
     if (!file || !file.type.startsWith("image/")) return;
     setSelectedFile(file);
     setPreviewUrl(URL.createObjectURL(file));
@@ -156,21 +197,20 @@ export default function Home() {
     setError(null);
   };
 
-  const handleDrop = (e) => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>): void => {
     e.preventDefault();
     setDragging(false);
-    const file = e.dataTransfer.files[0];
-    handleFile(file);
+    handleFile(e.dataTransfer.files[0]);
   };
 
-  const handleAnalyze = async () => {
+  const handleAnalyze = async (): Promise<void> => {
     if (!selectedFile) return;
     setLoading(true);
     setError(null);
     const formData = new FormData();
     formData.append("file", selectedFile);
     try {
-      const response = await axios.post(
+      const response = await axios.post<PredictionResult>(
         "https://skin-cancer-api-da8x.onrender.com/predict",
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
@@ -183,7 +223,7 @@ export default function Home() {
     }
   };
 
-  const reset = () => {
+  const reset = (): void => {
     setPreviewUrl(null);
     setSelectedFile(null);
     setResult(null);
@@ -191,14 +231,17 @@ export default function Home() {
     setRevealed(false);
   };
 
-  const info = result
-    ? classificationMap[result.class_name] || {
-        name: result.class_name, status: "Unknown", description: "Classification not in current map.",
-        color: "#6b7280", bg: "#f9fafb", border: "#e5e7eb", badge: "#f3f4f6", badgeText: "#374151", risk: 0
+  const info: ClassInfo | null = result
+    ? classificationMap[result.class_name] ?? {
+        name: result.class_name,
+        status: "Unknown",
+        description: "Classification not in current map.",
+        color: "#6b7280", bg: "#f9fafb", border: "#e5e7eb",
+        badge: "#f3f4f6", badgeText: "#374151", risk: 0,
       }
     : null;
 
-  const confNum = result ? Number((result.confidence * 100).toFixed(1)) : 0;
+  const confNum: number = result ? Number((result.confidence * 100).toFixed(1)) : 0;
 
   return (
     <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", minHeight: "100vh", background: "#f8fafc", color: "#111827" }}>
@@ -235,11 +278,13 @@ export default function Home() {
         <div style={{ maxWidth: 740, margin: "0 auto", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+              <circle cx="12" cy="12" r="10" /><path d="M12 8v4l3 3" />
             </svg>
             <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: "15px", letterSpacing: "0.01em" }}>DermaScan AI</span>
           </div>
-          <span style={{ fontSize: "11px", color: "#a5b4fc", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" }}>Research Preview · Not for Clinical Use</span>
+          <span style={{ fontSize: "11px", color: "#a5b4fc", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+            Research Preview · Not for Clinical Use
+          </span>
         </div>
       </div>
 
@@ -248,7 +293,9 @@ export default function Home() {
         <div style={{ maxWidth: 740, margin: "0 auto" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(165,180,252,0.15)", border: "1px solid rgba(165,180,252,0.3)", borderRadius: "999px", padding: "5px 12px", marginBottom: "20px" }}>
             <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#a5b4fc" }} />
-            <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#c7d2fe" }}>AI-Assisted Dermatology Triage</span>
+            <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#c7d2fe" }}>
+              AI-Assisted Dermatology Triage
+            </span>
           </div>
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(28px, 5vw, 44px)", fontWeight: 400, lineHeight: 1.15, marginBottom: 14, color: "#fff" }}>
             Skin Lesion<br /><em style={{ color: "#a5b4fc" }}>Analysis Tool</em>
@@ -257,7 +304,7 @@ export default function Home() {
             Upload a dermoscopic or clinical image and receive an AI-generated classification powered by a Vision Transformer model trained on the HAM10000 dataset.
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {["Vision Transformer (ViT)", "Grad-CAM Heatmap", "7 Lesion Classes", "HAM10000 Dataset"].map(t => (
+            {["Vision Transformer (ViT)", "Grad-CAM Heatmap", "7 Lesion Classes", "HAM10000 Dataset"].map((t) => (
               <span key={t} className="tag-chip" style={{ background: "rgba(255,255,255,0.1)", color: "#e0e7ff", borderRadius: "999px" }}>{t}</span>
             ))}
           </div>
@@ -267,11 +314,11 @@ export default function Home() {
       {/* Main content */}
       <div style={{ maxWidth: 740, margin: "0 auto", padding: "32px 24px 64px" }}>
 
-        {/* Critical disclaimer — always visible */}
+        {/* Critical disclaimer */}
         <div className="disclaimer-block red" style={{ marginBottom: 24 }}>
           <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
             <svg style={{ flexShrink: 0, marginTop: 2 }} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
             </svg>
             <div>
               <p style={{ fontSize: "13px", fontWeight: 700, color: "#991b1b", marginBottom: 5 }}>⚕ Medical Disclaimer — Read Before Use</p>
@@ -302,16 +349,22 @@ export default function Home() {
               className={`drop-zone${dragging ? " active" : ""}`}
               style={{ padding: "48px 24px", textAlign: "center", cursor: "pointer" }}
               onClick={() => fileRef.current?.click()}
-              onDragOver={e => { e.preventDefault(); setDragging(true); }}
+              onDragOver={(e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); setDragging(true); }}
               onDragLeave={() => setDragging(false)}
               onDrop={handleDrop}
             >
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto 14px" }}>
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto 14px", display: "block" }}>
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
               </svg>
               <p style={{ fontSize: "15px", fontWeight: 600, color: "#374151", marginBottom: 6 }}>Drop image here or click to browse</p>
               <p style={{ fontSize: "12.5px", color: "#9ca3af" }}>Accepts JPG, PNG, WEBP · Close-up clinical or dermoscopic images work best</p>
-              <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={e => handleFile(e.target.files[0])} />
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFile(e.target.files?.[0])}
+              />
             </div>
           </div>
         )}
@@ -350,30 +403,35 @@ export default function Home() {
             <div style={{ background: "#fff", borderRadius: 20, border: `1.5px solid ${info.border}`, padding: 28, boxShadow: "0 4px 24px rgba(0,0,0,0.05)", marginBottom: 16 }}>
               <p className="section-label">Analysis Result</p>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 24 }}>
-                {/* Left: classification */}
                 <div style={{ flex: "1 1 240px" }}>
                   <span className="badge" style={{ background: info.badge, color: info.badgeText, marginBottom: 12 }}>
                     <span style={{ width: 6, height: 6, borderRadius: "50%", background: info.color, display: "inline-block" }} />
                     {info.status}
                   </span>
-                  <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "26px", fontWeight: 400, color: "#111827", lineHeight: 1.25, marginBottom: 10 }}>{info.name}</h2>
+                  <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "26px", fontWeight: 400, color: "#111827", lineHeight: 1.25, marginBottom: 10 }}>
+                    {info.name}
+                  </h2>
                   <p style={{ fontSize: "13.5px", color: "#6b7280", lineHeight: 1.75, marginBottom: 14 }}>{info.description}</p>
                   <RiskMeter risk={info.risk} />
                 </div>
-                {/* Right: confidence ring */}
                 <div style={{ flex: "0 0 auto", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
                   <ConfidenceRing confidence={confNum} color={info.color} />
                   {result.heatmap_base64 && (
                     <div>
-                      <p style={{ fontSize: "10px", textAlign: "center", color: "#9ca3af", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>Grad-CAM Heatmap</p>
-                      <img src={`data:image/png;base64,${result.heatmap_base64}`} style={{ width: 140, height: 140, objectFit: "cover", borderRadius: 12, border: "1.5px solid #e5e7eb", display: "block" }} alt="Grad-CAM heatmap visualisation" />
+                      <p style={{ fontSize: "10px", textAlign: "center", color: "#9ca3af", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>
+                        Grad-CAM Heatmap
+                      </p>
+                      <img
+                        src={`data:image/png;base64,${result.heatmap_base64}`}
+                        style={{ width: 140, height: 140, objectFit: "cover", borderRadius: 12, border: "1.5px solid #e5e7eb", display: "block" }}
+                        alt="Grad-CAM heatmap visualisation"
+                      />
                     </div>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Result-specific disclaimer for high-risk */}
             {info.risk >= 4 && (
               <div className="disclaimer-block red" style={{ marginBottom: 16 }}>
                 <p style={{ fontSize: "13px", fontWeight: 700, color: "#991b1b", marginBottom: 5 }}>⚕ Urgent Advisory</p>
@@ -405,7 +463,7 @@ export default function Home() {
         <div className="disclaimer-block" style={{ marginTop: 24 }}>
           <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
             <svg style={{ flexShrink: 0, marginTop: 2 }} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
             <div>
               <p style={{ fontSize: "13px", fontWeight: 700, color: "#92400e", marginBottom: 5 }}>Important Information</p>
@@ -420,28 +478,12 @@ export default function Home() {
         <div style={{ marginTop: 40, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
           <span style={{ fontSize: "12px", color: "#9ca3af" }}>Developed by <strong style={{ color: "#6b7280" }}>Leo P.</strong></span>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {["Research Use Only", "Not Validated Clinically", "No Data Stored"].map(t => (
+            {["Research Use Only", "Not Validated Clinically", "No Data Stored"].map((t) => (
               <span key={t} className="tag-chip" style={{ fontSize: "10px" }}>{t}</span>
             ))}
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function AccordionPanel({ title, children }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div>
-      <button className="accordion-btn" onClick={() => setOpen(o => !o)} aria-expanded={open}>
-        <span>{title}</span>
-        <svg style={{ transform: open ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s", flexShrink: 0 }}
-          width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round">
-          <polyline points="6 9 12 15 18 9"/>
-        </svg>
-      </button>
-      {open && children}
     </div>
   );
 }
